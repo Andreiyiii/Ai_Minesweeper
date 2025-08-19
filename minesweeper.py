@@ -205,10 +205,12 @@ class MinesweeperAI():
         j=cell[1]
         for m in range(i-1,i+2):
             for n in range(j-1,j+2):
-                if (m==i and n==j) or (m<0) or (n<0) or (m>7) or (n>7) :
+                if (m==i and n==j) or (m<0) or (n<0) or (m>=self.height) or (n>=self.width) :
                     continue
                 else:
-                    if (m,n) not in self.mines and (m,n) not in self.safes:
+                    if (m,n) in self.mines:
+                        count=count-1
+                    elif (m,n) not in self.safes:
                         neighbours.add((m,n))
         if neighbours:    
             self.knowledge.append(Sentence(neighbours,count))
