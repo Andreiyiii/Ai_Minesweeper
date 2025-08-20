@@ -212,29 +212,53 @@ class MinesweeperAI():
                         count=count-1
                     elif (m,n) not in self.safes:
                         neighbours.add((m,n))
-        if neighbours:    
-            self.knowledge.append(Sentence(neighbours,count))
+        if neighbours:
+            new_sentence=Sentence(neighbours,count)    
+            if new_sentence not in self.knowledge:
+                self.knowledge.append(new_sentence)
         
+        possible_inference=True
+        while possible_inference:
+            possible_inference=False
+            for i,sentence in enumerate(self.knowledge.copy()):
 
-        infered_sentences=[]
-        for i,sentence in enumerate(self.knowledge.copy()):
-            print(sentence)
+                if cell in sentence.cells:
+                    sentence.cells.remove(cell)
+                    possible_inference=True
 
-            if cell in sentence.cells:
-                sentence.cells.remove(cell)
+                if not sentence.cells:
+                    self.knowledge.remove(sentence)
+                                    
 
-            if not sentence.cells:
-                self.knowledge.remove(sentence)                
-
-            for block in sentence.known_mines().copy():
-                self.mark_mine(block)
-            for block in sentence.known_safes().copy():
-                self.mark_safe(block)
-
+                for block in sentence.known_mines().copy():
+                    self.mark_mine(block)
+                    possible_inference=True
+                for block in sentence.known_safes().copy():
+                    self.mark_safe(block)
+                    possible_inference=True
 
 
-        self.knowledge.extend(infered_sentences)            
-                    
+
+            infered_sentences=[]
+            for i,sentence in enumerate(self.knowledge):
+                for following in self.knowledge[i+1:]:
+                    if following.cells < sentence.cells:
+                        new_cells=sentence.cells-following.cells
+                        new_count=sentence.count-following.count
+                        if new_cells:
+                            infered_sentences.append(Sentence(new_cells,new_count))
+
+                    if sentence.cells < following.cells:
+                        new_cells=following.cells-sentence.cells
+                        new_count=following.count-sentence.count
+                        if new_cells:
+                            infered_sentences.append(Sentence(new_cells,new_count))
+
+            for s in infered_sentences:
+                if s not in self.knowledge:
+                    possible_inference=True
+                    self.knowledge.append(s)            
+                        
 
         
 
@@ -248,6 +272,9 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
+        for sentence in self.knowledge:
+            print(sentence)
+        print("\n")
         if self.safes:
             for m in self.safes:
                 if m not in self.moves_made:
