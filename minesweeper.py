@@ -215,7 +215,9 @@ class MinesweeperAI():
         if neighbours:    
             self.knowledge.append(Sentence(neighbours,count))
         
-        for sentence in self.knowledge.copy():
+
+        infered_sentences=[]
+        for i,sentence in enumerate(self.knowledge.copy()):
             print(sentence)
 
             if cell in sentence.cells:
@@ -228,6 +230,12 @@ class MinesweeperAI():
                 self.mark_mine(block)
             for block in sentence.known_safes().copy():
                 self.mark_safe(block)
+
+
+
+        self.knowledge.extend(infered_sentences)            
+                    
+
         
 
 
@@ -240,7 +248,12 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        raise NotImplementedError
+        if self.safes:
+            for m in self.safes:
+                if m not in self.moves_made:
+                    return m
+        return None
+
 
     def make_random_move(self):
         """
@@ -249,4 +262,11 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
+        while True:
+            (i,j)=random.randint(0,self.height-1),random.randint(0,self.width-1)
+            if (i,j) in self.moves_made or  (i,j) in self.mines:
+                (i,j)=random.randint(0,self.height-1),random.randint(0,self.width-1)
+            if (i,j) not in self.moves_made and (i,j) not in self.mines:
+                return (i,j)
+
         raise NotImplementedError
